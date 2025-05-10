@@ -20,7 +20,7 @@ def get_html(game_id: int, player_id: int):
         </head>
         <body>
             <h1>WebSocket Chat</h1>
-            <h2>Your ID: {player_id}</h2>
+            <h2>Your Player ID: {player_id}</h2>
             <form action="" onsubmit="sendMessage(event)">
                 <input type="text" id="messageText" autocomplete="off"/>
                 <button>Send</button>
@@ -28,22 +28,20 @@ def get_html(game_id: int, player_id: int):
             <ul id='messages'>
             </ul>
             <script>
-                var client_id = {player_id}
-                document.querySelector("#ws-id").textContent = client_id;
                 var ws = new WebSocket(`ws://localhost:8000/api/game/game/{game_id}/ws/{player_id}`);
-                ws.onmessage = function(event) {
+                ws.onmessage = function(event) {{
                     var messages = document.getElementById('messages')
                     var message = document.createElement('li')
                     var content = document.createTextNode(event.data)
                     message.appendChild(content)
                     messages.appendChild(message)
-                };
-                function sendMessage(event) {
+                }};
+                function sendMessage(event) {{
                     var input = document.getElementById("messageText")
                     ws.send(input.value)
                     input.value = ''
                     event.preventDefault()
-                }
+                }}
             </script>
         </body>
     </html>
@@ -58,20 +56,21 @@ async def newGame():
 
 @router.get("/game/{game_id}/invite")
 async def inivitePlayer(game_id: int):
-    game = gameStore.get_game(game_id)
+    game: T4Game = gameStore.get_game(game_id)
     if game is None:
         return {"error": "Game not found"}
     
     # Check if the game is already full
-    # Generate unique client id and return html with client id embeeded in ws url
-
+    if game.get_next_player_id() is None:
+        return {"error": "Game is already full"}
+    
     return HTMLResponse(get_html(game_id, game.get_next_player_id()))
 
 manager = MultiPlayerConnectionManager()
 
 @router.websocket("/game/{game_id}/ws/{player_id}")
-async def websocket_endpoint(websocket: WebSocket, game_id: int, player_id: int):
-    game = gameStore.get_game(game_id)
+async def websocket_endpoint(websocket: WebSocket, game_id: int, player_id: str):
+    game: T4Game = gameStore.get_game(game_id)
     if game is None:
         await websocket.send_text("Game not found")
         await websocket.close()
@@ -83,8 +82,10 @@ async def websocket_endpoint(websocket: WebSocket, game_id: int, player_id: int)
     try:
         while True:
             data = await websocket.receive_json()
+            print(f"Received data", data)
             broadcast_message = game.process_move(player_id, data)
             if broadcast_message:
+                print(f"Sending data", broadcast_message)
                 await manager.broadcast_message(game_id, broadcast_message)
     except WebSocketDisconnect:
         game.remove_player(player_id)

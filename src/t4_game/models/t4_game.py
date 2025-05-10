@@ -1,11 +1,11 @@
 class T4Game:
     def __init__(self):
-        self.player1 = 'X'
-        self.player2 = 'O'
-        self.current_player = self.player1
         self.board = [[None for _ in range(4)] for _ in range(4)]
         self.winner = None
         self.players_in_game = {'1': None, '2': None}
+        self.player_1 = '1'
+        self.player_2 = '2'
+        self.current_player = self.player_1
 
     def get_next_player_id(self):
         if self.players_in_game['1'] is None:
@@ -58,7 +58,7 @@ class T4Game:
             if self.check_winner(row, col):
                 self.winner = self.current_player
             else:
-                self.current_player = self.player2 if self.current_player == self.player1 else self.player1
+                self.current_player = self.player_2 if self.current_player == self.player_1 else self.player_1
 
     def check_winner(self, row, col):
         # Check row
@@ -78,4 +78,4 @@ class T4Game:
     def reset(self):
         self.board = [[None for _ in range(4)] for _ in range(4)]
         self.winner = None
-        self.current_player = self.player1
+        self.current_player = self.player_1
