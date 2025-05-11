@@ -1,11 +1,10 @@
+import uuid
 class GameStore:
     def __init__(self):
         self.games = {}
-        self.nextId = 1
 
     def add_game(self, game_data):
-        game_id = self.nextId
-        self.nextId += 1
+        game_id = str(uuid.uuid4())
         self.games[game_id] = game_data
         return game_id
 

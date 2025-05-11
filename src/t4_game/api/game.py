@@ -1,5 +1,5 @@
 from typing import Union
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException, status
 from fastapi.responses import HTMLResponse
 from t4_game.models.game_store import GameStore
 from t4_game.models.t4_game import T4Game
@@ -11,7 +11,7 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-def get_html(game_id: int, player_id: int):
+def get_html(game_id: str, player_id: int):
     return f"""
     <!DOCTYPE html>
     <html>
@@ -54,8 +54,20 @@ async def newGame():
     game_id = gameStore.add_game(T4Game())
     return game_id
 
+@router.get("/game/{game_id}/join")
+async def inivitePlayer(game_id: str):
+    game: T4Game = gameStore.get_game(game_id)
+    if game is None:
+        return {"error": "Game not found"}
+    
+    # Check if the game is already full
+    if game.get_next_player_id() is None:
+        return {"error": "Game is already full"}
+    
+    return {"playerId": game.get_next_player_id()}
+
 @router.get("/game/{game_id}/invite")
-async def inivitePlayer(game_id: int):
+async def inivitePlayer(game_id: str):
     game: T4Game = gameStore.get_game(game_id)
     if game is None:
         return {"error": "Game not found"}
@@ -69,15 +81,16 @@ async def inivitePlayer(game_id: int):
 manager = MultiPlayerConnectionManager()
 
 @router.websocket("/game/{game_id}/ws/{player_id}")
-async def websocket_endpoint(websocket: WebSocket, game_id: int, player_id: str):
+async def websocket_endpoint(websocket: WebSocket, game_id: str, player_id: str):
     game: T4Game = gameStore.get_game(game_id)
     if game is None:
-        await websocket.send_text("Game not found")
+        await websocket.accept()
+        await websocket.send_json({"type": "error", "message": "Game not found"})
         await websocket.close()
-        return
 
     await manager.connect(game_id, player_id, websocket)
     game.add_player(player_id)
+    await manager.broadcast_message(game_id, game.get_game_state())
 
     try:
         while True:

@@ -1,5 +1,7 @@
 **/__pycache__/
+**/node_modules/
 submission/
 *.pyc
 .env
 .venv
+.DS_Store

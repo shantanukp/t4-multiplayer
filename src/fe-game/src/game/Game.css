@@ -1,0 +1,158 @@
+:root {
+    --primary-color: #7C3AED;
+    --secondary-color: #F472B6;
+    --winner-color: #10B981;
+    --earliest-move: #FCD34D;
+    --background: #F3F4F6;
+    --text: #1F2937;
+}
+
+.t4Game {
+    padding: 2rem;
+    background: var(--background);
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.t4Game h1 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.board {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 2rem auto;
+    max-width: fit-content;
+}
+
+.row {
+    display: flex;
+    gap: 12px;
+}
+
+.cell {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.cell:hover {
+    transform: translateY(-2px);
+}
+
+.cellButton {
+    min-height: 80px;
+    min-width: 80px;
+    border: none;
+    background: white;
+    border-radius: 12px;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cellButton:hover:not([disabled]) {
+    box-shadow: 0 0 0 3px var(--primary-color);
+}
+
+.cellButton[disabled] {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.cellButton:empty {
+    position: relative;
+}
+
+.cellButton:empty::before {
+    content: attr(data-next-move);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    color: var(--primary-color);
+    transition: opacity 0.2s ease;
+    font-size: 2rem;
+}
+
+.cellButton:empty:hover::before {
+    opacity: 0.4;
+}
+
+.banner {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.bannerText {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.bannerText span {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: var(--background);
+}
+
+button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.earliestMove {
+    background: var(--earliest-move);
+    color: var(--text);
+}
+
+.winnerCell {
+    background: var(--winner-color);
+    color: white;
+    animation: winner 0.5s ease-in-out;
+}
+
+@keyframes winner {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
