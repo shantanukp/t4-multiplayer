@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import 'react-toastify/dist/ReactToastify.css';
 import Game from './game/Game'
-import GameMenu from './GameMenu';
+import GameMenu from './game/GameMenu';
 import { toast } from 'react-toastify';
 
 function App() {

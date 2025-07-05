@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'react-toastify';
+import GameBox from './GameBox'
 
 type GameMenuParams = {
     onJoinGameSubmit: (gameId: string) => void; 
@@ -11,16 +12,18 @@ export default function GameMenu({ onJoinGameSubmit }: GameMenuParams) {
 
     if (showJoinGameMenu) {
         return (
-            <div className="login-form">
-                <input 
-                    type="text" 
-                    placeholder="Enter game id"
-                    value={gameId}
-                    onChange={(e) => setGameId(e.target.value)}
-                />
-                <button onClick={() => onJoinGameSubmit(gameId)}>Join Game</button>
-                <button onClick={() => setShowJoinGameMenu(false)}>Back</button>                
-            </div>
+            <GameBox>
+                <div className="login-form">
+                    <input 
+                        type="text" 
+                        placeholder="Enter game id"
+                        value={gameId}
+                        onChange={(e) => setGameId(e.target.value)}
+                    />
+                    <button onClick={() => onJoinGameSubmit(gameId)}>Join Game</button>
+                    <button onClick={() => setShowJoinGameMenu(false)}>Back</button>                
+                </div>
+            </GameBox>
         )
     }
 
@@ -37,9 +40,11 @@ export default function GameMenu({ onJoinGameSubmit }: GameMenuParams) {
     }
 
     return (
-        <div className="login-form">
-            <button onClick={() => startNewGame()}>New Game</button>
-            <button onClick={() => setShowJoinGameMenu(true)}>Join Game</button>
-        </div>
+        <GameBox>
+            <div className="login-form">
+                <button onClick={() => startNewGame()}>New Game</button>
+                <button onClick={() => setShowJoinGameMenu(true)}>Join Game</button>
+            </div>
+        </GameBox>        
     )
 }

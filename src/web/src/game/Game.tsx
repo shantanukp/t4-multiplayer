@@ -3,6 +3,7 @@ import Board from "./Board"
 import { useRef, useState } from "react";
 import { BoardValue } from "./game.types";
 import Banner from "./Banner";
+import GameBox from './GameBox'
 import { toast } from 'react-toastify';
 
 type GameParams = {
@@ -60,14 +61,13 @@ export default function Game({ ws, gameId, playerId }: GameParams) {
     }
     
     return (
-        <div className="t4Game">
-            <h1> Twisted Tic-Tac-Toe</h1>
+        <GameBox>
             <Banner gameId={gameId} playerId={playerId} nextMove={nextMove.current} winner={winner.current} onReset={onReset}/>
             {
                 allPlayersReady
                     ? <Board playerId={playerId} nextMove={nextMove.current} board={board} winnerSequence={winnerSequence.current} onMove={onMove}/>
                     : <div> Waiting for all players to join! </div>
             }
-        </div>
+        </GameBox>
     )
 }
