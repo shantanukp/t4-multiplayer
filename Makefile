@@ -1,5 +1,5 @@
 dev-server:
-	poetry run uvicorn t4_game.main:app --reload --app-dir src
+	poetry run uvicorn server.main:app --reload --app-dir src
 
 dev-web:
-	cd src/fe-game && npm run dev
+	cd src/web && npm run dev

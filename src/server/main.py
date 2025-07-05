@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from t4_game.api import game
+from server.api import game
 
 origins = [
     "http://localhost:3000",  # React dev server

@@ -2,9 +2,9 @@ from typing import Union
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException, status
 from json import JSONDecodeError
 from fastapi.responses import HTMLResponse
-from t4_game.models.game_store import GameStore
-from t4_game.models.t4_game import T4Game
-from t4_game.models.multi_player_connection_manager import MultiPlayerConnectionManager
+from server.models.game_store import GameStore
+from server.models.t4_game import T4Game
+from server.models.multi_player_connection_manager import MultiPlayerConnectionManager
 
 router = APIRouter()
 

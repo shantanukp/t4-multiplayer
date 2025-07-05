@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [tool.poetry]
-packages = [{include = "t4_game", from = "src"}]
+packages = [{include = "server", from = "src"}]
 
 
 [build-system]
