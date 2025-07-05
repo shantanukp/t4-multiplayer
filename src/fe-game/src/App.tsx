@@ -1,48 +1,40 @@
 import { useState } from 'react'
 import './App.css'
 import Game from './game/Game'
+import GameMenu from './GameMenu';
 
 function App() {
-  const [gameId, setGameId] = useState<string>("");
-  const [playerId, setPlayerId] = useState<string>("");
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [gameId, setGameId] = useState<string | null>(null)
   const [ws, setWs] = useState<WebSocket | null>(null);
 
+  async function connectWebSocket(newGameId: string) {
+    try {
+      const data = await (await fetch(`http://localhost:8000/api/game/game/${newGameId}/join/`)).json() as {playerId: string};
+      const newWs = new WebSocket(`ws://localhost:8000/api/game/game/${newGameId}/ws/${data.playerId}`);
+      setGameId(newGameId);
+      setPlayerId(data.playerId);
 
-  function connectWebSocket() {
-    const newWs = new WebSocket(`ws://localhost:8000/api/game/game/${gameId}/ws/${playerId}`);
-    setWs(newWs)
-    newWs.onerror = (event) => {
-      console.log("Connection error", event);
-      // setWs(null);
-    }
-    newWs.onclose = (event) => {
-      console.log("Connection closed", event);
-      setWs(null);
+      // Setup WS
+      newWs.onerror = (event) => {
+        console.log("Connection error", event);
+      }
+      newWs.onclose = (event) => {
+        console.log("Connection closed", event);
+        setWs(null);
+      }
+      setWs(newWs)
+    } catch(err) {
+      console.log("Could not connect to game!!!", err)
     }
   }
 
-  if (!ws) {
-    return (
-      <div className="login-form">
-        <input 
-          type="text" 
-          placeholder="Enter game id"
-          value={gameId}
-          onChange={(e) => setGameId(e.target.value)}
-        />
-        <input 
-          type="text" 
-          placeholder="Enter player id"
-          value={playerId}
-          onChange={(e) => setPlayerId(e.target.value)}
-        />
-        <button onClick={() => connectWebSocket()}>Join</button>
-      </div>
-    )
+  if (!ws || !playerId || !gameId) {
+    return <GameMenu onJoinGameSubmit={(gameId) => connectWebSocket(gameId)}/>
   }
 
   return (
-    <Game ws={ws}/>
+    <Game playerId={playerId} gameId={gameId} ws={ws}/>
   )
 }
 

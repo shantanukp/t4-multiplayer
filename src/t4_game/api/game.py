@@ -1,5 +1,6 @@
 from typing import Union
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException, status
+from json import JSONDecodeError
 from fastapi.responses import HTMLResponse
 from t4_game.models.game_store import GameStore
 from t4_game.models.t4_game import T4Game
@@ -7,11 +8,23 @@ from t4_game.models.multi_player_connection_manager import MultiPlayerConnection
 
 router = APIRouter()
 
-@router.get("/")
-def read_root():
-    return {"Hello": "World"}
+def get_new_game_html(game_id: str):
+    return f"""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>New Game</title>
+        </head>
+        <body>
+            <h2>Game ID: {game_id}</h2>
+            <a href="http://localhost:8000/api/game/dev-chat/game/{game_id}/join/" onsubmit="sendMessage(event)" target="_blank">
+                Dev chat
+            </a>
+        </body>
+    </html>
+    """
 
-def get_html(game_id: str, player_id: int):
+def get_dev_chat_html(game_id: str, player_id: int):
     return f"""
     <!DOCTYPE html>
     <html>
@@ -49,10 +62,27 @@ def get_html(game_id: str, player_id: int):
 
 gameStore = GameStore()
 
+@router.get("/dev-chat/new-game")
+async def newGame():
+    game_id = gameStore.add_game(T4Game())
+    return HTMLResponse(get_new_game_html(game_id))
+
+@router.get("/dev-chat/game/{game_id}/join")
+async def inivitePlayer(game_id: str):
+    game: T4Game = gameStore.get_game(game_id)
+    if game is None:
+        return {"error": "Game not found"}
+    
+    # Check if the game is already full
+    if game.get_next_player_id() is None:
+        return {"error": "Game is already full"}
+    
+    return HTMLResponse(get_dev_chat_html(game_id, game.get_next_player_id()))
+
 @router.get("/new-game")
 async def newGame():
     game_id = gameStore.add_game(T4Game())
-    return game_id
+    return {"gameId": game_id}
 
 @router.get("/game/{game_id}/join")
 async def inivitePlayer(game_id: str):
@@ -65,18 +95,6 @@ async def inivitePlayer(game_id: str):
         return {"error": "Game is already full"}
     
     return {"playerId": game.get_next_player_id()}
-
-@router.get("/game/{game_id}/invite")
-async def inivitePlayer(game_id: str):
-    game: T4Game = gameStore.get_game(game_id)
-    if game is None:
-        return {"error": "Game not found"}
-    
-    # Check if the game is already full
-    if game.get_next_player_id() is None:
-        return {"error": "Game is already full"}
-    
-    return HTMLResponse(get_html(game_id, game.get_next_player_id()))
 
 manager = MultiPlayerConnectionManager()
 
@@ -103,3 +121,6 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, player_id: str)
     except WebSocketDisconnect:
         game.remove_player(player_id)
         manager.disconnect(game_id, player_id)
+    except JSONDecodeError:
+        print(f"Invalid move from player:", player_id)
+        await manager.broadcast_message(game_id, {"error": "Invalid move", "playerId": player_id})

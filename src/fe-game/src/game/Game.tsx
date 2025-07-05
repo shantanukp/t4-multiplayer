@@ -4,23 +4,33 @@ import { useRef, useState } from "react";
 import { BoardValue } from "./game.types";
 import Banner from "./Banner";
 
+type GameParams = {
+    ws: WebSocket;
+    playerId: string;
+    gameId: string;
+}
 
-export default function Game({ ws }: {ws: WebSocket | null}) {
-
-    const boardSize = 4;
-
-    const [board, setBoard] = useState<BoardValue[][]>(new Array(boardSize).fill(null).map(() => new Array(boardSize).fill(null)));
+export default function Game({ ws, gameId, playerId }: GameParams) {
+    const [board, setBoard] = useState<BoardValue[][] | null>(null);
+    const [numPlayersConnected, setNumPlayersConnected] = useState<number>(0);
     const nextMove = useRef<BoardValue>('1');
     const winner = useRef<BoardValue>(null);
+    const winnerSequence = useRef<number[][]>(null);
 
     if (ws) {
         ws.onmessage = function(event) {
             console.log("Received message from server: ", event.data);
-            updateState(JSON.parse(event.data))
+            const message = JSON.parse(event.data);
+            if ('error' in message) {
+                console.log("ERROR!!", message)
+            } else {
+                updateState(JSON.parse(event.data))
+            }
         };
     }
 
     function onMove(row: number, col: number) {
+        if (!board) return;
         if (winner.current || board[row][col] !== null) return;
 
         const move = {row, col}
@@ -28,23 +38,34 @@ export default function Game({ ws }: {ws: WebSocket | null}) {
         ws.send(JSON.stringify(move))
     }
 
-    function updateState(wsMessage: {current_player: BoardValue, winner: BoardValue, board: BoardValue[][]}) {
-        nextMove.current = wsMessage.current_player;
+    function updateState(wsMessage: {currentPlayer: BoardValue, winner: BoardValue, board: BoardValue[][], playersInGame: Record<string, boolean>, winnerSequence: number[][]}) {
+        nextMove.current = wsMessage.currentPlayer;
         winner.current = wsMessage.winner;
+        winnerSequence.current = wsMessage.winnerSequence;
         console.log("Current board", board);
         console.log("Setting new board", wsMessage.board);
         setBoard(wsMessage.board);
+        setNumPlayersConnected(Object.values(wsMessage.playersInGame).filter(val => val).length)
     }
 
     function onReset() {
-        console.log('reset');
+        if (!ws) return;
+        ws.send(JSON.stringify({reset: true, playerId}))
+    }
+
+    if (!board) {
+        return <></>
     }
     
     return (
         <div className="t4Game">
             <h1> Twisted Tic-Tac-Toe</h1>
-            <Banner nextMove={nextMove.current} winner={winner.current} onReset={onReset}/>
-            <Board nextMove={nextMove.current} board={board} onMove={onMove}/>
+            <Banner gameId={gameId} playerId={playerId} nextMove={nextMove.current} winner={winner.current} onReset={onReset}/>
+            {
+                numPlayersConnected === 2 
+                    ? <Board playerId={playerId} nextMove={nextMove.current} board={board} winnerSequence={winnerSequence.current} onMove={onMove}/>
+                    : <div> Waiting for all players to join! </div>
+            }
         </div>
     )
 }

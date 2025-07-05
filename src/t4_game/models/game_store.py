@@ -1,10 +1,14 @@
-import uuid
+import random
+import string
 class GameStore:
     def __init__(self):
         self.games = {}
 
+    def generate_unique_id(self):
+        return ''.join(random.choices(string.ascii_uppercase, k=6))
+
     def add_game(self, game_data):
-        game_id = str(uuid.uuid4())
+        game_id = self.generate_unique_id()
         self.games[game_id] = game_data
         return game_id
 
