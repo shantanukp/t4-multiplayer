@@ -3,6 +3,7 @@ import Board from "./Board"
 import { useRef, useState } from "react";
 import { BoardValue } from "./game.types";
 import Banner from "./Banner";
+import { toast } from 'react-toastify';
 
 type GameParams = {
     ws: WebSocket;
@@ -16,13 +17,14 @@ export default function Game({ ws, gameId, playerId }: GameParams) {
     const nextMove = useRef<BoardValue>('1');
     const winner = useRef<BoardValue>(null);
     const winnerSequence = useRef<number[][]>(null);
+    const allPlayersReady = numPlayersConnected === 2;
 
     if (ws) {
         ws.onmessage = function(event) {
             console.log("Received message from server: ", event.data);
             const message = JSON.parse(event.data);
             if ('error' in message) {
-                console.log("ERROR!!", message)
+                toast.error(message.error)
             } else {
                 updateState(JSON.parse(event.data))
             }
@@ -62,7 +64,7 @@ export default function Game({ ws, gameId, playerId }: GameParams) {
             <h1> Twisted Tic-Tac-Toe</h1>
             <Banner gameId={gameId} playerId={playerId} nextMove={nextMove.current} winner={winner.current} onReset={onReset}/>
             {
-                numPlayersConnected === 2 
+                allPlayersReady
                     ? <Board playerId={playerId} nextMove={nextMove.current} board={board} winnerSequence={winnerSequence.current} onMove={onMove}/>
                     : <div> Waiting for all players to join! </div>
             }

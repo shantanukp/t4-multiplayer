@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import './App.css'
+import 'react-toastify/dist/ReactToastify.css';
 import Game from './game/Game'
 import GameMenu from './GameMenu';
+import { toast } from 'react-toastify';
 
 function App() {
   const [playerId, setPlayerId] = useState<string | null>(null);
@@ -21,11 +23,13 @@ function App() {
       }
       newWs.onclose = (event) => {
         console.log("Connection closed", event);
+        toast.error("Connection lost to game")
         setWs(null);
       }
       setWs(newWs)
     } catch(err) {
-      console.log("Could not connect to game!!!", err)
+      console.log("Could not connect to game", err)
+      toast.error("Could not conenct to game")
     }
   }
 
@@ -33,9 +37,7 @@ function App() {
     return <GameMenu onJoinGameSubmit={(gameId) => connectWebSocket(gameId)}/>
   }
 
-  return (
-    <Game playerId={playerId} gameId={gameId} ws={ws}/>
-  )
+  return <Game playerId={playerId} gameId={gameId} ws={ws}/>
 }
 
 export default App
